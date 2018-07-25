@@ -1,2 +1,10 @@
-*.class
-*.log
+*.iml
+target/
+.idea/
+.idea_modules/
+.DS_STORE
+.cache
+.settings
+.project
+.classpath
+tmp/
