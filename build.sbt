@@ -9,7 +9,7 @@ val elasticsearchV = "5.4.17"
 val specs2V = "4.0.2"
 
 lazy val shadedElasticAssemblySettings = Seq(
-  //logLevel in assembly := Level.Debug,
+  logLevel in assembly := Level.Debug,
   test in assembly := {},
   assemblyOption in assembly ~= {
     _.copy(includeScala = false)
@@ -17,23 +17,25 @@ lazy val shadedElasticAssemblySettings = Seq(
   assemblyJarName in assembly := {
     s"${name.value}_${scalaBinaryVersion.value}-${version.value}.jar"
   },
-  assemblyJarName in (Test, assembly) := {
+  assemblyJarName in(Test, assembly) := {
     s"${name.value}_${scalaBinaryVersion.value}-${version.value}-test.jar"
   },
   assemblyShadeRules in assembly := Seq(
-    ShadeRule
-      .rename("com.sksamuel.elastic4s.**" -> "elastic4s6.@0").inAll
+    ShadeRule.rename("org.apache.commons.io.**" -> "shadeio.@1").inAll,
+    ShadeRule.rename("cats.implicits" -> "cats6.implicits").inAll,
+    ShadeRule.rename("com.sksamuel.elastic4s.Years" -> "elastic4s6.Years").inAll,
   ),
   libraryDependencies ++= Seq(
+    "commons-io" % "commons-io" % "2.4",
     "com.sksamuel.elastic4s" %% "elastic4s-core" % elasticsearch6V,
-    "com.sksamuel.elastic4s" %% "elastic4s-http" % elasticsearch6V,
-    "com.sksamuel.elastic4s" %% "elastic4s-circe" % elasticsearch6V,
-    "com.sksamuel.elastic4s" %% "elastic4s-testkit" % elasticsearch6V % "test",
-    "com.sksamuel.elastic4s" %% "elastic4s-embedded" % elasticsearch6V % "test",
+    //"com.sksamuel.elastic4s" %% "elastic4s-http" % elasticsearch6V,
+    //"com.sksamuel.elastic4s" %% "elastic4s-circe" % elasticsearch6V,
+    //"com.sksamuel.elastic4s" %% "elastic4s-testkit" % elasticsearch6V % "test",
+    //"com.sksamuel.elastic4s" %% "elastic4s-embedded" % elasticsearch6V % "test",
   ),
   target in assembly := baseDirectory.value / "target" / scalaBinaryVersion.value,
 
-  assemblyMergeStrategy in (Test, assembly) := {
+  assemblyMergeStrategy in(Test, assembly) := {
     case p if p.endsWith("io.netty.versions.properties") =>
       MergeStrategy.first
     case x =>
@@ -46,19 +48,19 @@ lazy val elastic4s6 = Project(
   id = "elastic4s6",
   base = file("elastic4s6")
 )
-  .settings(inConfig(Test)(baseAssemblySettings): _*)
-  .settings(inConfig(Test)(shadedElasticAssemblySettings): _*)
-  .settings(shadedElasticAssemblySettings ++ addArtifact(artifact in (Compile, assembly), sbtassembly.AssemblyKeys.assembly))
+  //.settings(inConfig(Test)(baseAssemblySettings): _*)
+  //.settings(inConfig(Test)(shadedElasticAssemblySettings): _*)
+  .settings(shadedElasticAssemblySettings ++ addArtifact(artifact in(Compile, assembly), sbtassembly.AssemblyKeys.assembly))
   .enablePlugins(AssemblyPlugin)
 
 lazy val rootSettings = Seq(
   compile := ((compile in Compile) dependsOn (elastic4s6 / assembly)).value,
   unmanagedJars in Compile ++= Seq(
-    (target in (elastic4s6, assembly)).value / (assemblyJarName in (elastic4s6, assembly)).value,
+    (target in(elastic4s6, assembly)).value / (assemblyJarName in(elastic4s6, assembly)).value,
   ),
   compile in Test := ((compile in Test) dependsOn (assembly in Test in elastic4s6)).value,
   unmanagedJars in Test ++= Seq(
-    (target in (elastic4s6, assembly)).value / (assemblyJarName in assembly in (elastic4s6, Test)).value,
+    (target in(elastic4s6, assembly)).value / (assemblyJarName in assembly in(elastic4s6, Test)).value,
   ),
 
   libraryDependencies ++= Seq(

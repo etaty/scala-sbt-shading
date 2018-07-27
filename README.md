@@ -1,6 +1,9 @@
 # scala-sbt-shading
 
-Example of how to shade a library.
+Example of how to shade a scala library.
+
+TL;DR; Didn't worked. Only works with Java
+Once the jar is unzipped, the package is renamed, but the content in `.class` files are not renamed to the new package name.
 
 #### Achievement
 
